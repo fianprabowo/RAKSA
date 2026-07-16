@@ -1,129 +1,184 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Check, HeartPulse, PhoneCall, UserRound, Users } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { Reveal } from "./reveal";
 
 type UseCaseId = "adult" | "child" | "elderly";
 
 interface UseCase {
   id: UseCaseId;
-  label: string;
+  tab: string;
+  eyebrow: string;
   title: string;
   description: string;
+  primaryAction: string;
+  chip: string;
   features: string[];
+  icon: LucideIcon;
 }
 
 const USE_CASES: UseCase[] = [
   {
     id: "adult",
-    label: "Darurat Medis",
-    title: "Darurat Medis Dewasa",
+    tab: "Medical Emergency",
+    eyebrow: "Adults · self-managed",
+    title: "Helpers know exactly what to do.",
     description:
-      "Ketika seseorang tidak sadar atau tidak mampu berkomunikasi, orang di sekitar dapat mengetuk atau memindai gelang untuk melihat informasi medis kritis dan menghubungi kontak darurat.",
+      "If you collapse or have an accident, a helper simply taps or scans the band to see your allergies, critical conditions, and call your emergency contact. No need to unlock your phone.",
+    primaryAction: "Primary action: Call emergency contact & 112",
+    chip: "TAP / SCAN IN EMERGENCY",
     features: [
-      "Alergi dan kondisi medis kritis langsung terlihat",
-      "Tombol hubungi kontak darurat dan layanan 112",
-      "Tanpa perlu membuka kunci ponsel korban",
-      "Label gelang: TAP / SCAN IN EMERGENCY",
+      "Allergies and critical conditions shown first",
+      "One-tap call to emergency contact & 112",
+      "No need to unlock the person's phone",
+      "Every scan is logged for you to review",
     ],
+    icon: HeartPulse,
   },
   {
     id: "child",
-    label: "Anak Hilang",
-    title: "Anak Hilang & Reunifikasi",
+    tab: "Lost Child",
+    eyebrow: "Children · parent-managed",
+    title: "Child separated in a crowd? Guardians reached instantly.",
     description:
-      "Ketika anak terpisah dari orang tua di tempat ramai, staf atau orang baik hati dapat memindai gelang untuk segera menghubungi wali — bahkan jika anak tidak ingat nomor telepon.",
+      "At a mall, airport, or festival, staff and kind strangers can scan a child's band to call the guardian right away, even if the child doesn't know anyone's number.",
+    primaryAction: "Primary action: Call Parent / Guardian",
+    chip: "SCAN IF LOST",
     features: [
-      "Tombol Call Parent / Guardian sebagai aksi utama",
-      "Kirim Lokasi ke Keluarga dari ponsel pembantu",
-      "Notifikasi instan ke orang tua saat gelang dipindai",
-      "Label gelang: SCAN IF LOST",
+      "A clear 'lost child' message for helpers",
+      "Call Parent / Guardian is the top button",
+      "Share location with family from the helper's phone",
+      "Instant notification to parents when scanned",
     ],
+    icon: Users,
   },
   {
     id: "elderly",
-    label: "Lansia",
-    title: "Keselamatan Orang Tua",
+    tab: "Elderly",
+    eyebrow: "Elderly · family-managed",
+    title: "Disoriented or lost? Family is one tap away.",
     description:
-      "Untuk lansia yang bingung, lupa jalan pulang, atau hidup dengan Alzheimer — gelang membantu orang di sekitar menghubungi keluarga dan memberikan konteks medis yang dibutuhkan.",
+      "For elderly people with disorientation or Alzheimer's, the band helps people nearby reach family and gives them the context they need to help calmly.",
+    primaryAction: "Primary action: Call Family",
+    chip: "SCAN TO CALL FAMILY",
     features: [
-      "Catatan disorientasi dan kondisi kognitif",
-      "Telepon keluarga / pengasuh sebagai aksi utama",
-      "Info medis kritis jika terjadi pingsan",
-      "Dikelola anak dewasa dari satu akun keluarga",
+      "Notes on disorientation & cognitive condition",
+      "Call family / primary caregiver button",
+      "Critical medical info in case of collapse",
+      "Managed by adult children from one family account",
     ],
+    icon: UserRound,
   },
 ];
 
-function UseCaseIcon({ id }: { id: UseCaseId }) {
-  if (id === "adult") {
-    return (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-    );
-  }
-  if (id === "child") {
-    return (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="8" r="4" />
-        <path d="M6 20v-1a6 6 0 0 1 12 0v1" />
-      </svg>
-    );
-  }
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  );
-}
-
 export function LandingUseCases() {
   const [active, setActive] = useState<UseCaseId>("adult");
+  const [paused, setPaused] = useState(false);
   const current = USE_CASES.find((uc) => uc.id === active) ?? USE_CASES[0];
+  const Icon = current.icon;
+  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (paused) return;
+    timer.current = setInterval(() => {
+      setActive((prev) => {
+        const idx = USE_CASES.findIndex((u) => u.id === prev);
+        return USE_CASES[(idx + 1) % USE_CASES.length].id;
+      });
+    }, 5000);
+    return () => {
+      if (timer.current) clearInterval(timer.current);
+    };
+  }, [paused]);
 
   return (
-    <section className="landing-section landing-section--alt">
-      <div className="landing-container">
-        <div className="landing-section__header">
-          <h2 className="landing-section__title">Satu Gelang, Tiga Skenario Keselamatan</h2>
-          <p className="landing-section__desc">
-            Satu akun keluarga dapat mengelola beberapa gelang — untuk diri sendiri, anak,
-            dan orang tua lanjut usia.
+    <section className="bg-white py-20 sm:py-28" id="skenario">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <Reveal className="mx-auto max-w-2xl text-center">
+          <p className="text-sm font-semibold text-brand-600">One band, many situations</p>
+          <h2 className="mt-3 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl">
+            Built for the moments that matter most.
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-slate-600">
+            From one family account, you can set up bands for yourself, your
+            kids, and your parents. Each situation puts the most important
+            action right at the top.
           </p>
-        </div>
+        </Reveal>
 
-        <div className="landing-tabs" role="tablist">
-          {USE_CASES.map((uc) => (
-            <button
-              key={uc.id}
-              type="button"
-              role="tab"
-              aria-selected={active === uc.id}
-              className={`landing-tab landing-tab--${uc.id}${active === uc.id ? ` landing-tab--active landing-tab--${uc.id}` : ""}`}
-              onClick={() => setActive(uc.id)}
-            >
-              {uc.label}
-            </button>
-          ))}
-        </div>
+        <Reveal delay={80} className="mt-10 flex flex-wrap justify-center gap-2">
+          {USE_CASES.map((uc) => {
+            const selected = active === uc.id;
+            const TabIcon = uc.icon;
+            return (
+              <button
+                key={uc.id}
+                type="button"
+                onClick={() => {
+                  setActive(uc.id);
+                  setPaused(true);
+                }}
+                aria-pressed={selected}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${
+                  selected
+                    ? "bg-brand-600 text-white shadow-[0_12px_22px_-10px_rgb(124_58_237_/_0.7)]"
+                    : "border border-slate-200 bg-white text-slate-600 hover:border-brand-200 hover:text-brand-700"
+                }`}
+              >
+                <TabIcon className="h-4 w-4" />
+                {uc.tab}
+              </button>
+            );
+          })}
+        </Reveal>
 
-        <div
-          className={`landing-tab-panel landing-tab-panel--${current.id}`}
-          role="tabpanel"
-        >
-          <div className={`landing-tab-panel__icon landing-tab-panel__icon--${current.id}`}>
-            <UseCaseIcon id={current.id} />
+        <Reveal delay={160}>
+          <div
+            key={current.id}
+            className="landing-fade-up mt-8 grid gap-6 rounded-[var(--radius-card)] border border-slate-200/80 bg-canvas p-6 shadow-[var(--shadow-soft)] sm:p-8 lg:grid-cols-[1.1fr_1fr]"
+            onMouseEnter={() => setPaused(true)}
+          >
+          <div>
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-[var(--shadow-soft)]">
+              <Icon className="h-6 w-6" />
+            </span>
+            <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-brand-600">
+              {current.eyebrow}
+            </p>
+            <h3 className="mt-2 text-2xl font-bold leading-snug text-slate-900 sm:text-3xl">
+              {current.title}
+            </h3>
+            <p className="mt-3 text-sm leading-relaxed text-slate-600 sm:text-base">
+              {current.description}
+            </p>
+            <div className="mt-5 inline-flex items-center gap-2 rounded-xl bg-brand-50 px-3.5 py-2.5 text-sm font-semibold text-brand-700">
+              <PhoneCall className="h-4 w-4" />
+              {current.primaryAction}
+            </div>
           </div>
-          <h3 className="landing-tab-panel__title">{current.title}</h3>
-          <p className="landing-tab-panel__text">{current.description}</p>
-          <ul className="landing-tab-panel__list">
-            {current.features.map((feature) => (
-              <li key={feature}>{feature}</li>
-            ))}
-          </ul>
-        </div>
+
+          <div className="flex flex-col justify-between gap-5 rounded-2xl bg-white p-5">
+            <ul className="space-y-2.5">
+              {current.features.map((feature) => (
+                <li key={feature} className="flex items-start gap-3 text-sm text-slate-700">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white">
+                    <Check className="h-3 w-3" strokeWidth={3} />
+                  </span>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <div className="flex items-center justify-between rounded-xl border border-dashed border-slate-300 bg-canvas px-4 py-3">
+              <span className="text-xs text-slate-500">Text on the band</span>
+              <span className="rounded-md bg-slate-900 px-2.5 py-1 font-mono text-[11px] font-semibold tracking-wide text-white">
+                {current.chip}
+              </span>
+            </div>
+          </div>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

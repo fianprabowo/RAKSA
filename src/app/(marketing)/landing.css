@@ -1,0 +1,176 @@
+/*
+ * Public marketing site.
+ * Shares the admin console color tone: brand violet, light lavender canvas,
+ * and the dark violet sidebar gradient used to bookend the page.
+ * Keeps an editorial serif display + motion for a premium, non-generic feel.
+ */
+@import "tailwindcss";
+
+@theme {
+  /* Brand violet — same scale as admin.css */
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+  --color-brand-800: #5b21b6;
+  --color-brand-900: #4c1d95;
+
+  /* Dark violet sidebar surface — same as admin */
+  --color-sidebar-top: #24115d;
+  --color-sidebar-mid: #1d1055;
+  --color-sidebar-bot: #170b45;
+
+  --color-ink: #0f172a;
+  --color-canvas: #f5f5fb;
+
+  --radius-card: 1.5rem;
+
+  --shadow-soft: 0 1px 2px rgb(15 23 42 / 0.04), 0 16px 40px -22px rgb(15 23 42 / 0.22);
+  --shadow-pop: 0 18px 44px -18px rgb(15 23 42 / 0.28);
+  --shadow-float: 0 40px 80px -30px rgb(36 17 93 / 0.55);
+}
+
+.landing-scope {
+  font-family: var(--font-landing, "Inter"), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+  letter-spacing: -0.011em;
+  color: #1e293b;
+  background: var(--color-canvas);
+}
+
+.landing-scope ::selection {
+  background: rgb(124 58 237 / 0.2);
+}
+
+/* Editorial serif display */
+.font-display {
+  font-family: var(--font-landing-serif, "Instrument Serif"), Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.font-display-italic {
+  font-family: var(--font-landing-serif, "Instrument Serif"), Georgia, serif;
+  font-style: italic;
+}
+
+/* Violet gradient text accent */
+.landing-accent-text {
+  background: linear-gradient(120deg, #7c3aed 0%, #a855f7 50%, #c026d3 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Grain overlay for dark panels */
+.landing-grain {
+  position: relative;
+}
+.landing-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Dotted grid backdrop */
+.landing-dots {
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ── Scroll reveal ── */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Keyframes ── */
+@keyframes landing-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-16px); }
+}
+@keyframes landing-float-x {
+  0%, 100% { transform: translate(0, 0) rotate(-4deg); }
+  50% { transform: translate(0, -12px) rotate(-4deg); }
+}
+@keyframes landing-ring {
+  0% { transform: scale(0.85); opacity: 0.7; }
+  70% { transform: scale(1.8); opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes landing-blob {
+  0%, 100% { border-radius: 42% 58% 63% 37% / 42% 42% 58% 58%; }
+  50% { border-radius: 58% 42% 37% 63% / 58% 58% 42% 42%; }
+}
+@keyframes landing-scanline {
+  0% { top: 8%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { top: 92%; opacity: 0; }
+}
+@keyframes landing-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes landing-sheen {
+  100% { transform: translateX(100%); }
+}
+@keyframes landing-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.landing-float { animation: landing-float 6.5s ease-in-out infinite; }
+.landing-float-x { animation: landing-float-x 8s ease-in-out infinite; }
+.landing-blob { animation: landing-blob 16s ease-in-out infinite; }
+.landing-ring { animation: landing-ring 2.4s cubic-bezier(0.16,1,0.3,1) infinite; }
+.landing-scanline { animation: landing-scanline 2.8s ease-in-out infinite; }
+.landing-fade-up { animation: landing-fade-up 0.5s ease both; }
+
+.landing-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: landing-marquee 30s linear infinite;
+}
+.landing-marquee:hover .landing-marquee-track {
+  animation-play-state: paused;
+}
+
+.landing-sheen { position: relative; overflow: hidden; }
+.landing-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  transform: translateX(-120%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+}
+.landing-sheen:hover::after { animation: landing-sheen 0.9s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-scope *,
+  .landing-scope *::before,
+  .landing-scope *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  [data-reveal] { opacity: 1; transform: none; }
+}

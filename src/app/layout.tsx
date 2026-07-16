@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "GelangSiaga — RAKSA-TAG",
+  title: "RAKSA-TAG — Emergency ID band",
   description:
-    "Gelang keselamatan NFC/QR untuk darurat medis, anak hilang, dan keselamatan lansia — bantu orang di sekitar menghubungi keluarga Anda dalam hitungan detik.",
+    "An NFC/QR safety band for medical emergencies, lost children, and elderly safety. It helps people around you reach your family in seconds.",
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id">
+    <html lang="en">
       <body>{children}</body>
     </html>
   );
