@@ -1,0 +1,193 @@
+import {
+  ProfileMode,
+  WearerRole,
+  WristbandStatus,
+} from "../enums";
+import { EmergencyId } from "../value-objects/emergency-id";
+import { PublicToken } from "../value-objects/public-token";
+import { ForbiddenError, ValidationError } from "../errors/domain-errors";
+
+export interface WristbandProps {
+  id: string;
+  ownerId?: string;
+  emergencyId: EmergencyId;
+  publicToken: PublicToken;
+  status: WristbandStatus;
+  profileMode: ProfileMode;
+  wearerRole: WearerRole;
+  wearerLabel: string;
+  notifyOnScan: boolean;
+  nfcUrl: string;
+  qrUrl: string;
+  claimedAt?: Date;
+  activatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Core aggregate root — represents a physical NFC/QR wristband.
+ */
+export class Wristband {
+  readonly id: string;
+  readonly ownerId?: string;
+  readonly emergencyId: EmergencyId;
+  readonly publicToken: PublicToken;
+  readonly status: WristbandStatus;
+  readonly profileMode: ProfileMode;
+  readonly wearerRole: WearerRole;
+  readonly wearerLabel: string;
+  readonly notifyOnScan: boolean;
+  readonly nfcUrl: string;
+  readonly qrUrl: string;
+  readonly claimedAt?: Date;
+  readonly activatedAt?: Date;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+
+  private constructor(props: WristbandProps) {
+    this.id = props.id;
+    this.ownerId = props.ownerId;
+    this.emergencyId = props.emergencyId;
+    this.publicToken = props.publicToken;
+    this.status = props.status;
+    this.profileMode = props.profileMode;
+    this.wearerRole = props.wearerRole;
+    this.wearerLabel = props.wearerLabel;
+    this.notifyOnScan = props.notifyOnScan;
+    this.nfcUrl = props.nfcUrl;
+    this.qrUrl = props.qrUrl;
+    this.claimedAt = props.claimedAt;
+    this.activatedAt = props.activatedAt;
+    this.createdAt = props.createdAt;
+    this.updatedAt = props.updatedAt;
+  }
+
+  static reconstitute(props: WristbandProps): Wristband {
+    return new Wristband(props);
+  }
+
+  /**
+   * Factory for a brand-new, unclaimed wristband created by an admin during
+   * tag provisioning. Owner is intentionally absent until a customer claims it.
+   */
+  static register(props: {
+    id: string;
+    emergencyId: EmergencyId;
+    publicToken: PublicToken;
+    profileMode: ProfileMode;
+    wearerRole: WearerRole;
+    wearerLabel: string;
+    notifyOnScan: boolean;
+    nfcUrl: string;
+    qrUrl: string;
+    now: Date;
+  }): Wristband {
+    return new Wristband({
+      id: props.id,
+      ownerId: undefined,
+      emergencyId: props.emergencyId,
+      publicToken: props.publicToken,
+      status: WristbandStatus.UNCLAIMED,
+      profileMode: props.profileMode,
+      wearerRole: props.wearerRole,
+      wearerLabel: props.wearerLabel,
+      notifyOnScan: props.notifyOnScan,
+      nfcUrl: props.nfcUrl,
+      qrUrl: props.qrUrl,
+      createdAt: props.now,
+      updatedAt: props.now,
+    });
+  }
+
+  canBeHardDeleted(): boolean {
+    return this.status === WristbandStatus.UNCLAIMED;
+  }
+
+  withRevoked(updatedAt: Date): Wristband {
+    return Wristband.reconstitute({
+      ...this.toProps(),
+      status: WristbandStatus.REVOKED,
+      updatedAt,
+    });
+  }
+
+  isOwnedBy(userId: string): boolean {
+    return this.ownerId === userId;
+  }
+
+  isPubliclyAccessible(): boolean {
+    return this.status === WristbandStatus.ACTIVE;
+  }
+
+  canBeClaimed(): boolean {
+    return this.status === WristbandStatus.UNCLAIMED;
+  }
+
+  assertOwnerAccess(userId: string): void {
+    if (!this.isOwnedBy(userId)) {
+      throw new ForbiddenError("You do not own this wristband");
+    }
+  }
+
+  assertPublicAccess(): void {
+    if (!this.isPubliclyAccessible()) {
+      throw new ValidationError("Wristband is not active");
+    }
+  }
+
+  withClaimed(ownerId: string, claimedAt: Date): Wristband {
+    if (!this.canBeClaimed()) {
+      throw new ValidationError("Wristband cannot be claimed");
+    }
+
+    return Wristband.reconstitute({
+      ...this.toProps(),
+      ownerId,
+      status: WristbandStatus.CLAIMED,
+      claimedAt,
+      updatedAt: claimedAt,
+    });
+  }
+
+  withActivated(activatedAt: Date): Wristband {
+    if (this.status !== WristbandStatus.CLAIMED) {
+      throw new ValidationError("Wristband must be claimed before activation");
+    }
+
+    return Wristband.reconstitute({
+      ...this.toProps(),
+      status: WristbandStatus.ACTIVE,
+      activatedAt,
+      updatedAt: activatedAt,
+    });
+  }
+
+  withDisabled(updatedAt: Date): Wristband {
+    return Wristband.reconstitute({
+      ...this.toProps(),
+      status: WristbandStatus.DISABLED,
+      updatedAt,
+    });
+  }
+
+  private toProps(): WristbandProps {
+    return {
+      id: this.id,
+      ownerId: this.ownerId,
+      emergencyId: this.emergencyId,
+      publicToken: this.publicToken,
+      status: this.status,
+      profileMode: this.profileMode,
+      wearerRole: this.wearerRole,
+      wearerLabel: this.wearerLabel,
+      notifyOnScan: this.notifyOnScan,
+      nfcUrl: this.nfcUrl,
+      qrUrl: this.qrUrl,
+      claimedAt: this.claimedAt,
+      activatedAt: this.activatedAt,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+    };
+  }
+}
