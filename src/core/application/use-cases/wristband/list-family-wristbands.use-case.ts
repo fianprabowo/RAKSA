@@ -24,6 +24,7 @@ export class ListFamilyWristbandsUseCase
       profileMode: w.profileMode,
       wearerRole: w.wearerRole,
       wearerLabel: w.wearerLabel,
+      deviceType: w.deviceType,
       notifyOnScan: w.notifyOnScan,
       activatedAt: w.activatedAt?.toISOString(),
     }));

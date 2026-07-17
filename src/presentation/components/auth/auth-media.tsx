@@ -1,4 +1,5 @@
-import { Nfc, Phone, ShieldCheck, Users } from "lucide-react";
+import { Nfc, Phone, Users } from "lucide-react";
+import { RaksaLogo } from "@/presentation/components/brand/raksa-logo";
 
 /**
  * Brand / illustration panel for the auth split layout.
@@ -64,8 +65,7 @@ export function AuthMedia() {
 
       <div className="auth-media__caption">
         <span className="auth-media__tag">
-          <ShieldCheck size={12} strokeWidth={2.4} />
-          RAKSA-TAG
+          <RaksaLogo variant="white" height={50} />
         </span>
       </div>
     </aside>

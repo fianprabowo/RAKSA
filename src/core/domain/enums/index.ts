@@ -24,6 +24,14 @@ export const WearerRole = {
 
 export type WearerRole = (typeof WearerRole)[keyof typeof WearerRole];
 
+export const DeviceType = {
+  BRACELET: "bracelet",
+  NECKLACE: "necklace",
+  KEYCHAIN: "keychain",
+} as const;
+
+export type DeviceType = (typeof DeviceType)[keyof typeof DeviceType];
+
 export const ActivationCodeStatus = {
   UNUSED: "unused",
   USED: "used",

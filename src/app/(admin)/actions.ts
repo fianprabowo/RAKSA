@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { ProfileMode, WearerRole } from "@/core/domain/enums";
+import { DeviceType, ProfileMode, WearerRole } from "@/core/domain/enums";
 import { DomainError } from "@/core/domain/errors/domain-errors";
 import { AdminWristbandDetailDto, RegisterWristbandOutput } from "@/core/application/dto";
 import { getAdminContext } from "@/shared/di/get-admin-context";
@@ -22,6 +22,7 @@ const registerSchema = z.object({
   profileMode: z.nativeEnum(ProfileMode).default(ProfileMode.ADULT_EMERGENCY),
   wearerRole: z.nativeEnum(WearerRole).default(WearerRole.SELF),
   wearerLabel: z.string().trim().max(80, "Label maksimal 80 karakter").optional(),
+  deviceType: z.nativeEnum(DeviceType).optional(),
 });
 
 function mapError(error: unknown): string {
@@ -37,6 +38,7 @@ export async function registerWristbandAction(
     profileMode: formData.get("profileMode") ?? undefined,
     wearerRole: formData.get("wearerRole") ?? undefined,
     wearerLabel: String(formData.get("wearerLabel") ?? "").trim() || undefined,
+    deviceType: formData.get("deviceType") ?? undefined,
   });
 
   if (!parsed.success) {

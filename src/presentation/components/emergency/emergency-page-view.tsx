@@ -8,12 +8,12 @@ import {
   Droplet,
   Languages,
   Phone,
-  ShieldCheck,
   Star,
   UserRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
+import { RaksaLogo } from "@/presentation/components/brand/raksa-logo";
 import { useEffect, useRef, type ReactNode } from "react";
 
 interface EmergencyPageViewProps {
@@ -131,10 +131,7 @@ export function EmergencyPageView({ data }: EmergencyPageViewProps) {
           <p className="m-0 min-w-0 truncate text-base font-bold tracking-[-0.02em] text-[#111827]">
             {data.preferredName}
           </p>
-          <div className="flex shrink-0 items-center gap-1.5 text-[13px] font-bold uppercase tracking-[0.18em] text-[#6D4AFF]">
-            <ShieldCheck size={15} aria-hidden="true" />
-            RAKSA
-          </div>
+          <RaksaLogo variant="color" height={42} className="shrink-0" />
         </div>
       </div>
 
@@ -144,10 +141,9 @@ export function EmergencyPageView({ data }: EmergencyPageViewProps) {
             <Link
               href="/"
               aria-label="Buka halaman utama RAKSA"
-              className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-[0.18em] text-[#6D4AFF] no-underline transition-opacity hover:opacity-70"
+              className="flex items-center no-underline transition-opacity hover:opacity-70"
             >
-              <ShieldCheck size={16} aria-hidden="true" />
-              RAKSA
+              <RaksaLogo variant="color" height={50} />
             </Link>
           </div>
 

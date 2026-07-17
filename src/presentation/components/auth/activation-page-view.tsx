@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ShieldCheck } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { ActivationFlow } from "./activation-flow";
 import { ClaimActivationForm } from "./claim-activation-form";
 import { AuthMedia } from "./auth-media";
+import { RaksaLogo } from "@/presentation/components/brand/raksa-logo";
 
 interface ActivationStepsProps {
   currentStep: 1 | 2 | 3;
@@ -41,11 +42,8 @@ function ActivationSteps({ currentStep }: ActivationStepsProps) {
 
 function AuthBrand() {
   return (
-    <Link href="/" className="auth-brand">
-      <span className="auth-brand__badge">
-        <ShieldCheck size={18} strokeWidth={2.4} />
-      </span>
-      <span>RAKSA</span>
+    <Link href="/" className="auth-brand" aria-label="RAKSA">
+      <RaksaLogo variant="color" height={80} />
     </Link>
   );
 }

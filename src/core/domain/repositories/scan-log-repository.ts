@@ -10,6 +10,8 @@ export interface CreateScanLogInput {
 /** Port — public access audit trail. */
 export interface ScanLogRepository {
   findByWristbandId(wristbandId: string, limit?: number): Promise<ScanLog[]>;
+  /** Recent scans across several wristbands (e.g. a family's tags). */
+  findByWristbandIds(wristbandIds: string[], limit?: number): Promise<ScanLog[]>;
   create(input: CreateScanLogInput): Promise<ScanLog>;
   attachLocation(
     scanLogId: string,

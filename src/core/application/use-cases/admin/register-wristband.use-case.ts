@@ -48,6 +48,7 @@ export class RegisterWristbandUseCase
       profileMode: input.profileMode ?? ProfileMode.ADULT_EMERGENCY,
       wearerRole: input.wearerRole ?? WearerRole.SELF,
       wearerLabel: input.wearerLabel?.trim() || "Unassigned tag",
+      deviceType: input.deviceType,
       notifyOnScan: (input.wearerRole ?? WearerRole.SELF) !== WearerRole.SELF,
       nfcUrl: publicUrl,
       qrUrl,

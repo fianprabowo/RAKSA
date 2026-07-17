@@ -12,7 +12,18 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const wristbands = await useCases.listFamilyWristbands.execute(user.id);
+  const [wristbands, activity, scanTrend] = await Promise.all([
+    useCases.listFamilyWristbands.execute(user.id),
+    useCases.listFamilyScanActivity.execute(user.id),
+    useCases.getFamilyScanTrend.execute(user.id),
+  ]);
 
-  return <DashboardView userEmail={user.email} wristbands={wristbands} />;
+  return (
+    <DashboardView
+      userEmail={user.email}
+      wristbands={wristbands}
+      activity={activity}
+      scanTrend={scanTrend}
+    />
+  );
 }

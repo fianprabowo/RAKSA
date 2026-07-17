@@ -2,6 +2,7 @@ import { Wristband } from "@/core/domain/entities/wristband";
 import { EmergencyId } from "@/core/domain/value-objects/emergency-id";
 import { PublicToken } from "@/core/domain/value-objects/public-token";
 import {
+  DeviceType,
   ProfileMode,
   WearerRole,
   WristbandStatus,
@@ -16,6 +17,7 @@ export interface WristbandRow {
   profile_mode: string;
   wearer_role: string;
   wearer_label: string;
+  device_type: string | null;
   notify_on_scan: boolean;
   nfc_url: string;
   qr_url: string;
@@ -35,6 +37,7 @@ export function wristbandToDomain(row: WristbandRow): Wristband {
     profileMode: row.profile_mode as ProfileMode,
     wearerRole: row.wearer_role as WearerRole,
     wearerLabel: row.wearer_label,
+    deviceType: (row.device_type ?? undefined) as DeviceType | undefined,
     notifyOnScan: row.notify_on_scan,
     nfcUrl: row.nfc_url,
     qrUrl: row.qr_url,
@@ -55,6 +58,7 @@ export function wristbandToRow(wristband: Wristband): WristbandRow {
     profile_mode: wristband.profileMode,
     wearer_role: wristband.wearerRole,
     wearer_label: wristband.wearerLabel,
+    device_type: wristband.deviceType ?? null,
     notify_on_scan: wristband.notifyOnScan,
     nfc_url: wristband.nfcUrl,
     qr_url: wristband.qrUrl,

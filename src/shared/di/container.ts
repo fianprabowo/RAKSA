@@ -2,6 +2,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { SystemClock } from "@/core/application/ports/clock";
 import { ClaimWristbandUseCase } from "@/core/application/use-cases/wristband/claim-wristband.use-case";
 import { ListFamilyWristbandsUseCase } from "@/core/application/use-cases/wristband/list-family-wristbands.use-case";
+import { UpdateWristbandWearerUseCase } from "@/core/application/use-cases/wristband/update-wristband-wearer.use-case";
+import { ListFamilyScanActivityUseCase } from "@/core/application/use-cases/wristband/list-family-scan-activity.use-case";
+import { GetFamilyScanTrendUseCase } from "@/core/application/use-cases/wristband/get-family-scan-trend.use-case";
 import { GetPublicEmergencyPageUseCase } from "@/core/application/use-cases/emergency/get-public-emergency-page.use-case";
 import { RecordPublicScanUseCase } from "@/core/application/use-cases/emergency/record-public-scan.use-case";
 import { ResolveEmergencyIdUseCase } from "@/core/application/use-cases/emergency/resolve-emergency-id.use-case";
@@ -9,6 +12,8 @@ import { SupabaseActivationCodeRepository } from "@/infrastructure/persistence/s
 import { SupabaseWristbandRepository } from "@/infrastructure/persistence/supabase/repositories/supabase-wristband.repository";
 import { SupabaseEmergencyProfileRepository } from "@/infrastructure/persistence/supabase/repositories/supabase-emergency-profile.repository";
 import { SupabaseEmergencyContactRepository } from "@/infrastructure/persistence/supabase/repositories/supabase-emergency-contact.repository";
+import { SupabaseScanLogRepository } from "@/infrastructure/persistence/supabase/repositories/supabase-scan-log.repository";
+import { SupabaseScanNotificationRepository } from "@/infrastructure/persistence/supabase/repositories/supabase-scan-notification.repository";
 import { SupabaseAuthService } from "@/infrastructure/auth/supabase-auth.service";
 import { resolvePersistenceClient } from "@/infrastructure/persistence/supabase/client/persistence-client";
 import { UuidIdGenerator } from "@/infrastructure/id/uuid-id-generator";
@@ -27,21 +32,8 @@ export function createAppContainer(supabase: SupabaseClient) {
   const emergencyContactRepository = new SupabaseEmergencyContactRepository(db);
   const authService = new SupabaseAuthService(supabase);
 
-  const scanLogRepository = {
-    findByWristbandId: async () => [],
-    create: async () => {
-      throw new Error("ScanLogRepository not implemented");
-    },
-    attachLocation: async () => {
-      throw new Error("ScanLogRepository not implemented");
-    },
-  };
-
-  const scanNotificationRepository = {
-    findByAccountHolderId: async () => [],
-    save: async () => undefined,
-    markAsRead: async () => undefined,
-  };
+  const scanLogRepository = new SupabaseScanLogRepository(db);
+  const scanNotificationRepository = new SupabaseScanNotificationRepository(db);
 
   return {
     authService,
@@ -53,6 +45,18 @@ export function createAppContainer(supabase: SupabaseClient) {
       }),
       listFamilyWristbands: new ListFamilyWristbandsUseCase({
         wristbandRepository,
+      }),
+      updateWristbandWearer: new UpdateWristbandWearerUseCase({
+        wristbandRepository,
+        clock,
+      }),
+      listFamilyScanActivity: new ListFamilyScanActivityUseCase({
+        wristbandRepository,
+        scanLogRepository,
+      }),
+      getFamilyScanTrend: new GetFamilyScanTrendUseCase({
+        wristbandRepository,
+        scanLogRepository,
       }),
       getPublicEmergencyPage: new GetPublicEmergencyPageUseCase({
         wristbandRepository,

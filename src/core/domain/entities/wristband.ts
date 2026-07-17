@@ -1,4 +1,5 @@
 import {
+  DeviceType,
   ProfileMode,
   WearerRole,
   WristbandStatus,
@@ -16,6 +17,7 @@ export interface WristbandProps {
   profileMode: ProfileMode;
   wearerRole: WearerRole;
   wearerLabel: string;
+  deviceType?: DeviceType;
   notifyOnScan: boolean;
   nfcUrl: string;
   qrUrl: string;
@@ -37,6 +39,7 @@ export class Wristband {
   readonly profileMode: ProfileMode;
   readonly wearerRole: WearerRole;
   readonly wearerLabel: string;
+  readonly deviceType?: DeviceType;
   readonly notifyOnScan: boolean;
   readonly nfcUrl: string;
   readonly qrUrl: string;
@@ -54,6 +57,7 @@ export class Wristband {
     this.profileMode = props.profileMode;
     this.wearerRole = props.wearerRole;
     this.wearerLabel = props.wearerLabel;
+    this.deviceType = props.deviceType;
     this.notifyOnScan = props.notifyOnScan;
     this.nfcUrl = props.nfcUrl;
     this.qrUrl = props.qrUrl;
@@ -78,6 +82,7 @@ export class Wristband {
     profileMode: ProfileMode;
     wearerRole: WearerRole;
     wearerLabel: string;
+    deviceType?: DeviceType;
     notifyOnScan: boolean;
     nfcUrl: string;
     qrUrl: string;
@@ -92,6 +97,7 @@ export class Wristband {
       profileMode: props.profileMode,
       wearerRole: props.wearerRole,
       wearerLabel: props.wearerLabel,
+      deviceType: props.deviceType,
       notifyOnScan: props.notifyOnScan,
       nfcUrl: props.nfcUrl,
       qrUrl: props.qrUrl,
@@ -150,6 +156,32 @@ export class Wristband {
     });
   }
 
+  /**
+   * Updates who wears the tag. Used when adding a family member (right after
+   * claim) or editing an existing member. Owner/status are untouched.
+   */
+  withWearer(params: {
+    wearerRole: WearerRole;
+    wearerLabel: string;
+    profileMode: ProfileMode;
+    notifyOnScan: boolean;
+    updatedAt: Date;
+  }): Wristband {
+    const label = params.wearerLabel.trim();
+    if (!label) {
+      throw new ValidationError("Nama anggota wajib diisi", "wearerLabel");
+    }
+
+    return Wristband.reconstitute({
+      ...this.toProps(),
+      wearerRole: params.wearerRole,
+      wearerLabel: label,
+      profileMode: params.profileMode,
+      notifyOnScan: params.notifyOnScan,
+      updatedAt: params.updatedAt,
+    });
+  }
+
   withActivated(activatedAt: Date): Wristband {
     if (this.status !== WristbandStatus.CLAIMED) {
       throw new ValidationError("Wristband must be claimed before activation");
@@ -181,6 +213,7 @@ export class Wristband {
       profileMode: this.profileMode,
       wearerRole: this.wearerRole,
       wearerLabel: this.wearerLabel,
+      deviceType: this.deviceType,
       notifyOnScan: this.notifyOnScan,
       nfcUrl: this.nfcUrl,
       qrUrl: this.qrUrl,

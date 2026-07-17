@@ -15,6 +15,10 @@ import {
   isValidActivationCodeFormat,
   normalizeActivationCode,
 } from "@/core/domain/value-objects/activation-code-value";
+import {
+  notifyDefaultForRole,
+  profileModeForRole,
+} from "@/core/domain/policies/wearer-profile-policy";
 
 export interface ClaimWristbandDependencies {
   wristbandRepository: WristbandRepository;
@@ -51,18 +55,14 @@ export class ClaimWristbandUseCase
       );
     }
 
-    return this.validateAndClaim(
-      activationCode.wristbandId,
-      input.ownerId,
-      normalized,
-    );
+    return this.validateAndClaim(activationCode.wristbandId, normalized, input);
   }
 
   /** Internal helper — validates code against wristband (used by full implementation). */
   protected async validateAndClaim(
     wristbandId: string,
-    ownerId: string,
     plainCode: string,
+    input: ClaimWristbandInput,
   ): Promise<ClaimWristbandOutput> {
     const wristband = await this.deps.wristbandRepository.findById(wristbandId);
 
@@ -82,11 +82,21 @@ export class ClaimWristbandUseCase
     }
 
     const now = this.deps.clock.now();
-    const claimed = wristband.withClaimed(ownerId, now);
+    let claimed = wristband.withClaimed(input.ownerId, now);
+
+    if (input.wearerRole && input.wearerLabel?.trim()) {
+      claimed = claimed.withWearer({
+        wearerRole: input.wearerRole,
+        wearerLabel: input.wearerLabel,
+        profileMode: profileModeForRole(input.wearerRole),
+        notifyOnScan: input.notifyOnScan ?? notifyDefaultForRole(input.wearerRole),
+        updatedAt: now,
+      });
+    }
 
     await this.deps.wristbandRepository.save(claimed);
     await this.deps.activationCodeRepository.save(
-      activationCode.withUsed(ownerId, now),
+      activationCode.withUsed(input.ownerId, now),
     );
 
     return {

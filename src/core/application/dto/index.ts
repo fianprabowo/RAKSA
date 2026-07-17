@@ -1,5 +1,5 @@
 import { AccessMethod } from "@/core/domain/enums";
-import { ProfileMode, WearerRole } from "@/core/domain/enums";
+import { DeviceType, ProfileMode, WearerRole } from "@/core/domain/enums";
 
 export interface PublicEmergencyContactDto {
   label: string;
@@ -30,11 +30,23 @@ export interface PublicEmergencyPageDto {
 export interface ClaimWristbandInput {
   ownerId: string;
   activationCode: string;
+  /** Optional wearer details captured during the "add family member" flow. */
+  wearerRole?: WearerRole;
+  wearerLabel?: string;
+  notifyOnScan?: boolean;
 }
 
 export interface ClaimWristbandOutput {
   wristbandId: string;
   wearerLabel: string;
+}
+
+export interface UpdateWristbandWearerInput {
+  ownerId: string;
+  wristbandId: string;
+  wearerRole: WearerRole;
+  wearerLabel: string;
+  notifyOnScan?: boolean;
 }
 
 export interface RecordScanInput {
@@ -64,8 +76,23 @@ export interface WristbandSummaryDto {
   profileMode: ProfileMode;
   wearerRole: string;
   wearerLabel: string;
+  deviceType?: string;
   notifyOnScan: boolean;
   activatedAt?: string;
+}
+
+export interface ScanActivityDto {
+  id: string;
+  wearerLabel: string;
+  accessMethod: string;
+  scannedAt: string;
+  locationShared: boolean;
+}
+
+export interface ScanTrendPointDto {
+  /** UTC day key, e.g. "2026-07-17". */
+  date: string;
+  count: number;
 }
 
 // ── Admin (superadmin tag provisioning) ──
@@ -74,6 +101,7 @@ export interface RegisterWristbandInput {
   profileMode?: ProfileMode;
   wearerRole?: WearerRole;
   wearerLabel?: string;
+  deviceType?: DeviceType;
 }
 
 export interface RegisterWristbandOutput {

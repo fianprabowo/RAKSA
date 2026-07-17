@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Menu, ShieldCheck, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { RaksaLogo } from "@/presentation/components/brand/raksa-logo";
 
 const NAV_LINKS = [
   { label: "Stories", href: "#cerita" },
@@ -33,17 +34,13 @@ export function LandingHeader() {
       }`}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href="/" className="group flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-[0_8px_20px_-8px_rgb(124_58_237_/_0.8)] transition-transform group-hover:scale-105">
-            <ShieldCheck className="h-[18px] w-[18px]" />
-          </span>
-          <span
-            className={`text-base font-bold tracking-tight transition-colors ${
-              dark ? "!text-white" : "text-slate-900"
-            }`}
-          >
-            RAKSA<span className={dark ? "!text-white" : "text-brand-600"}>-TAG</span>
-          </span>
+        <Link href="/" className="group flex items-center">
+          <RaksaLogo
+            variant={dark ? "white" : "color"}
+            height={80}
+            priority
+            className="transition-transform group-hover:scale-105"
+          />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

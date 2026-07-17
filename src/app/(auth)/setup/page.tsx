@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/infrastructure/persistence/supabase/client/server-client";
 import { createAppContainer } from "@/shared/di/container";
 import { AuthMedia } from "@/presentation/components/auth/auth-media";
+import { RaksaLogo } from "@/presentation/components/brand/raksa-logo";
 
 interface SetupPageProps {
   searchParams: Promise<{ wristband?: string }>;
@@ -25,11 +25,8 @@ export default async function SetupPage({ searchParams }: SetupPageProps) {
       <main className="auth-panel">
         <div className="auth-panel__inner">
           <div className="auth-brand-row">
-            <Link href="/" className="auth-brand">
-              <span className="auth-brand__badge">
-                <ShieldCheck size={18} strokeWidth={2.4} />
-              </span>
-              <span>RAKSA</span>
+            <Link href="/" className="auth-brand" aria-label="RAKSA">
+              <RaksaLogo variant="color" height={46} />
             </Link>
           </div>
 

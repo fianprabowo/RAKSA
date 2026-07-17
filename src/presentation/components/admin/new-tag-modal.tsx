@@ -55,7 +55,25 @@ export function NewTagModal({ onClose }: NewTagModalProps) {
       {result ? (
         <RevealCodeContent result={result} />
       ) : (
-        <form action={formAction}>
+        <form action={formAction} className="space-y-4">
+          <div>
+            <label
+              htmlFor="deviceType"
+              className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200"
+            >
+              Jenis Tag
+            </label>
+            <select
+              id="deviceType"
+              name="deviceType"
+              defaultValue="bracelet"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 transition-all focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/15 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+            >
+              <option value="bracelet">Gelang</option>
+              <option value="necklace">Kalung</option>
+              <option value="keychain">Gantungan Kunci</option>
+            </select>
+          </div>
           <Button type="submit" size="md" disabled={pending} className="w-full">
             <Sparkles className="h-4 w-4" />
             {pending ? "Memproses..." : "Continue"}
