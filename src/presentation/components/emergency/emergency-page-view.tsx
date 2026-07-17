@@ -1,375 +1,364 @@
+"use client";
+
 import type { PublicEmergencyPageDto } from "@/core/application/dto";
 import { ProfileMode } from "@/core/domain/enums";
 import {
-  BadgeAlert,
-  Brain,
-  CheckCircle2,
+  Cake,
   ChevronRight,
-  Clock3,
-  FileHeart,
-  HeartPulse,
-  MessageCircle,
+  Droplet,
+  Languages,
   Phone,
-  Pill,
   ShieldCheck,
-  Siren,
   Star,
   UserRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useRef, type ReactNode } from "react";
 
 interface EmergencyPageViewProps {
   data: PublicEmergencyPageDto;
 }
 
-const cardClass =
-  "mt-5 rounded-[28px] border border-[rgba(109,74,255,0.08)] bg-white/95 p-6 shadow-[0_2px_3px_rgba(23,23,23,0.025),0_20px_44px_-28px_rgba(67,46,151,0.32)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_6px_rgba(23,23,23,0.025),0_24px_50px_-28px_rgba(67,46,151,0.42)] motion-reduce:transform-none motion-reduce:transition-none";
+const sheetCard =
+  "rounded-[24px] border border-[#ECE8FF] bg-white shadow-[0_8px_24px_-18px_rgba(67,46,151,0.28)]";
 
-const medicalTone = {
-  primary: {
-    icon: "bg-[#F3EEFF] text-[#6D4AFF]",
-    pill: "border-[#E4DCFF] bg-[#F5F2FF] text-[#5838E8]",
-    marker: "bg-[#6D4AFF]",
-  },
-  danger: {
-    icon: "bg-[#FFF3F3] text-[#EF4444]",
-    pill: "border-red-100 bg-red-50 text-red-800",
-    marker: "bg-[#EF4444]",
-  },
-  warning: {
-    icon: "bg-[#FFF8E8] text-[#F59E0B]",
-    pill: "border-amber-100 bg-amber-50 text-amber-800",
-    marker: "bg-[#F59E0B]",
-  },
-  info: {
-    icon: "bg-blue-50 text-blue-500",
-    pill: "border-blue-100 bg-blue-50 text-blue-800",
-    marker: "bg-blue-500",
-  },
-} as const;
+const AVENIR_FONT =
+  '"Avenir Next", Avenir, ui-sans-serif, system-ui, sans-serif';
+
+const COLLAPSE_DISTANCE = 220;
 
 export function EmergencyPageView({ data }: EmergencyPageViewProps) {
   const contacts = [...data.contacts].sort(
     (a, b) => Number(b.isPrimary) - Number(a.isPrimary),
   );
-  const primaryContact = contacts.find((contact) => contact.isPrimary) ?? contacts[0];
   const disclaimer = getDisclaimer(data.profileMode);
+  const modeLabel = getModeLabel(data.profileMode);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Drive the collapse via a single CSS variable updated on scroll (rAF).
+  // Only transform/opacity are animated, so this stays smooth without any
+  // React re-renders or custom CSS keyframes.
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const root = rootRef.current;
+    if (!root) return;
+
+    let frame = 0;
+    let current = 0;
+    let target = 0;
+
+    // Ease `current` toward `target` each frame for a smooth, slightly
+    // trailing collapse instead of a rigid 1:1 scroll mapping.
+    const tick = () => {
+      current += (target - current) * 0.18;
+      if (Math.abs(target - current) < 0.001) current = target;
+      root.style.setProperty("--collapse", current.toFixed(4));
+      frame = current === target ? 0 : window.requestAnimationFrame(tick);
+    };
+
+    const onScroll = () => {
+      target = Math.min(Math.max(window.scrollY / COLLAPSE_DISTANCE, 0), 1);
+      if (!frame) frame = window.requestAnimationFrame(tick);
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  const heroChips = [
+    data.approximateAge !== undefined
+      ? { icon: Cake, label: "Usia", value: `${data.approximateAge}` }
+      : null,
+    data.bloodType
+      ? { icon: Droplet, label: "Golongan darah", value: data.bloodType }
+      : null,
+    data.languageHint
+      ? {
+          icon: Languages,
+          label: "Bahasa",
+          value: formatLanguage(data.languageHint),
+        }
+      : null,
+  ].filter(Boolean) as Array<{
+    icon: LucideIcon;
+    label: string;
+    value: string;
+  }>;
+
+  const medicalRows = [
+    data.criticalAllergies
+      ? { label: "Alergi", value: data.criticalAllergies }
+      : null,
+    data.medicalConditions
+      ? { label: "Kondisi", value: data.medicalConditions }
+      : null,
+    data.importantMedications
+      ? { label: "Obat", value: data.importantMedications }
+      : null,
+  ].filter(Boolean) as Array<{ label: string; value: string }>;
+
+  const noteRows = [
+    data.profileMode === ProfileMode.CHILD_GUARDIAN && data.reunificationNote
+      ? { label: "Reunifikasi", value: data.reunificationNote }
+      : null,
+    data.profileMode === ProfileMode.ELDERLY_DEPENDENT &&
+    (data.disorientationNotes || data.cognitiveConditionFlag)
+      ? {
+          label: "Pendampingan",
+          value:
+            data.disorientationNotes ??
+            "Orang ini mungkin mengalami kebingungan atau disorientasi.",
+        }
+      : null,
+    data.emergencyNotes
+      ? { label: "Catatan", value: data.emergencyNotes }
+      : null,
+  ].filter(Boolean) as Array<{ label: string; value: string }>;
 
   return (
-    <main className="mx-auto min-h-dvh w-full max-w-[520px] px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[calc(10rem+env(safe-area-inset-bottom))] max-[350px]:px-3">
-      <div className="mb-4 mt-1 flex items-center justify-center gap-2 text-[13px] font-bold uppercase tracking-[0.11em] text-[#6D4AFF]">
-        <ShieldCheck size={17} aria-hidden="true" />
-        RAKSA
+    <div ref={rootRef} className="min-h-dvh bg-[#EDE9FE] [--collapse:0]">
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 z-40 flex justify-center border-b border-[#E4DCFF]/90 bg-[#F5F5F5]/85 backdrop-blur-[14px] opacity-[calc((var(--collapse)-0.55)*3)] [transform:translate3d(0,calc((1-var(--collapse))*-6px),0)] [will-change:opacity,transform]"
+        aria-hidden="true"
+      >
+        <div className="flex w-full max-w-[520px] items-center justify-between gap-3 px-5 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] min-h-13">
+          <p className="m-0 min-w-0 truncate text-base font-bold tracking-[-0.02em] text-[#111827]">
+            {data.preferredName}
+          </p>
+          <div className="flex shrink-0 items-center gap-1.5 text-[13px] font-bold uppercase tracking-[0.18em] text-[#6D4AFF]">
+            <ShieldCheck size={15} aria-hidden="true" />
+            RAKSA
+          </div>
+        </div>
       </div>
 
-      <div className="mb-4 mt-1 flex items-center justify-center gap-2 text-[13px] font-bold uppercase tracking-[0.11em] text-[#6D4AFF]">
-        <p className="mb-2.5 mt-0">
-        <span className="rounded-full border border-red-500/20 bg-white/70 px-2.5 py-1 text-[15px] font-bold uppercase tracking-[0.075em] text-red-800">
-          Emergency Information
-        </span>
-      </p>
-      </div>
+      <header className="relative z-0 bg-[#EDE9FE]">
+        <div className="mx-auto w-full max-w-[520px] origin-top px-5 pb-8 pt-[max(2.5rem,calc(env(safe-area-inset-top)_+_1.25rem))] opacity-[calc(1-(var(--collapse)*0.85))] [transform:scale(calc(1-(var(--collapse)*0.14)))_translate3d(0,calc(var(--collapse)*-14px),0)] [will-change:transform,opacity]">
+          <div className="mb-4 flex min-h-10 items-center justify-center">
+            <Link
+              href="/"
+              aria-label="Buka halaman utama RAKSA"
+              className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-[0.18em] text-[#6D4AFF] no-underline transition-opacity hover:opacity-70"
+            >
+              <ShieldCheck size={16} aria-hidden="true" />
+              RAKSA
+            </Link>
+          </div>
+
+          <div className="relative flex min-h-[220px] items-end justify-between gap-3">
+            <div className="relative z-[1] min-w-0 max-w-[58%] self-center pb-2">
+              <span className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#BE123C] shadow-[0_1px_2px_rgba(15,23,42,0.06)]">
+                <span
+                  className="size-1.5 rounded-full bg-[#EF4444]"
+                  aria-hidden="true"
+                />
+                Emergency
+              </span>
+              <h1 className="m-0 text-[clamp(1.85rem,8vw,2.35rem)] font-bold leading-[1.1] tracking-[-0.035em] text-[#111827]">
+                {data.preferredName}
+              </h1>
+              <p
+                className="mb-0 mt-2 text-[15px] font-medium text-[#6B7280]"
+                style={{ fontFamily: AVENIR_FONT }}
+              >
+                {modeLabel}
+              </p>
+            </div>
+
+            <div
+              className="grid h-[220px] w-40 shrink-0 place-items-center overflow-hidden rounded-[1.75rem] bg-[#D1D5DB] text-[#9CA3AF] max-[380px]:h-[190px] max-[380px]:w-[132px]"
+              aria-hidden="true"
+            >
+              <UserRound size={88} strokeWidth={1.4} />
+            </div>
+          </div>
+
+          {heroChips.length > 0 && (
+            <div className="mt-5 flex flex-wrap gap-2">
+              {heroChips.map((chip) => (
+                <span
+                  key={chip.label}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[13px] shadow-[0_1px_2px_rgba(15,23,42,0.05)]"
+                  aria-label={`${chip.label}: ${chip.value}`}
+                >
+                  <chip.icon
+                    size={14}
+                    className="text-[#6D4AFF]"
+                    aria-hidden="true"
+                  />
+                  <span className="font-semibold text-[#111827]">
+                    {chip.value}
+                  </span>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </header>
 
       <section
-        className="fixed bottom-[max(.65rem,env(safe-area-inset-bottom))] left-1/2 z-20 grid w-[calc(100%-1rem)] max-w-[504px] -translate-x-1/2 gap-2 rounded-[24px] border border-[#EDE8F8] bg-white/95 p-3 shadow-[0_18px_40px_-22px_rgba(76,61,120,0.35)] backdrop-blur-xl"
-        aria-label="Tindakan darurat"
+        className="relative z-10 mx-auto -mt-4 w-full max-w-[520px] rounded-t-[32px] bg-[#F8F7FF] px-4 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-6 shadow-[0_-12px_40px_-24px_rgba(67,46,151,0.25)]"
+        style={{ fontFamily: AVENIR_FONT }}
       >
-        {primaryContact && (
-          <a
-            href={primaryContact.telUri}
-            style={{ color: "#3F2F74" }}
-            className="flex min-h-14 items-center justify-center gap-2.5 rounded-2xl bg-[#A99BE8] px-4 py-3.5 text-center text-[15px] font-bold leading-tight no-underline shadow-[0_10px_22px_-12px_rgba(169,155,232,0.85)] transition duration-200 hover:-translate-y-px hover:bg-[#9B8CDE] active:scale-[0.975] motion-reduce:transform-none motion-reduce:transition-none"
-          >
-            <Phone size={22} style={{ color: "#3F2F74" }} aria-hidden="true" />
-            Hubungi {primaryContact.label}
-          </a>
-        )}
-        <div className="grid grid-cols-2 gap-2">
-          {primaryContact && (
-            <a
-              href={toWhatsAppUri(primaryContact.telUri)}
-              style={{ color: "#14532D" }}
-              className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-[#6BCB8F] px-3 py-3.5 text-center text-[15px] font-bold no-underline shadow-[0_10px_22px_-12px_rgba(107,203,143,0.8)] transition duration-200 hover:bg-[#5CBD81] active:scale-[0.975] motion-reduce:transform-none motion-reduce:transition-none max-[350px]:px-2 max-[350px]:text-[13px]"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <MessageCircle size={21} style={{ color: "#14532D" }} aria-hidden="true" />
-              WhatsApp
-            </a>
-          )}
-          <a
-            href="tel:112"
-            style={{ color: "#7F1D2F" }}
-            className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-[#E88A9C] px-3 py-3.5 text-center text-[15px] font-bold no-underline shadow-[0_10px_22px_-12px_rgba(232,138,156,0.8)] transition duration-200 hover:-translate-y-px hover:bg-[#DE7B8E] active:scale-[0.975] motion-reduce:transform-none motion-reduce:transition-none max-[350px]:px-2 max-[350px]:text-[13px]"
-          >
-            <Siren size={22} style={{ color: "#7F1D2F" }} aria-hidden="true" />
-            Telepon 112
-          </a>
-        </div>
-      </section>
-
-      <section className={`${cardClass} p-5 max-[350px]:p-4`}>
-        <div className="flex items-center gap-4">
-          <span className="grid size-[72px] shrink-0 place-items-center rounded-[20px] border border-[#E4DCFF] bg-gradient-to-br from-[#F8F5FF] to-[#F3EEFF] text-[#6D4AFF]">
-            <UserRound size={29} aria-hidden="true" />
-          </span>
-          <div className="min-w-0">
-            <h1 className="m-0 truncate text-[clamp(2rem,9vw,2.5rem)] font-bold leading-[1.08] tracking-[-0.045em] text-[#171717]">
-              {data.preferredName}
-            </h1>
-          </div>
-        </div>
-
-        {(data.approximateAge !== undefined ||
-          data.bloodType ||
-          data.languageHint) && (
-          <p className="mb-0 mt-3 text-[15px] font-medium leading-relaxed text-[#6B7280]">
-            {[
-              data.approximateAge !== undefined
-                ? `${data.approximateAge} tahun`
-                : null,
-              data.bloodType ? `Golongan darah ${data.bloodType}` : null,
-              data.languageHint
-                ? `Bahasa ${formatLanguage(data.languageHint)}`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-        )}
-      </section>
-
-      {contacts.length > 0 && (
-        <section className="mt-5" aria-labelledby="emergency-contacts-title">
-          <h2
-            id="emergency-contacts-title"
-            className="mb-3 mt-0 text-lg font-bold text-[#171717]"
-          >
-            Kontak Darurat
-          </h2>
-          <div className="grid gap-3">
-            {contacts.map((contact) => (
-              <a
-                key={`${contact.telUri}-${contact.label}`}
-                href={contact.telUri}
-                className="relative flex min-h-[82px] max-h-[92px] cursor-pointer items-center gap-3 rounded-[20px] border border-[#ECE8FF] bg-white p-[18px] text-inherit no-underline shadow-[0_2px_3px_rgba(23,23,23,0.02),0_14px_32px_-26px_rgba(67,46,151,0.34)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_6px_rgba(23,23,23,0.02),0_24px_50px_-28px_rgba(67,46,151,0.38)] active:scale-[0.98] motion-reduce:transform-none motion-reduce:transition-none"
-              >
-                <span className="grid size-12 shrink-0 place-items-center rounded-full border border-[#E4DCFF] bg-[#F3EEFF] text-[#6D4AFF]">
-                  <UserRound size={24} aria-hidden="true" />
-                </span>
-                <span className="min-w-0">
-                  <strong className="block truncate text-lg font-bold text-[#171717]">
-                    {contact.label}
-                  </strong>
-                  <small className="mt-1 block text-sm text-[#6B7280]">
-                    {contact.label === contact.relationship
-                      ? "Kontak darurat"
-                      : contact.relationship}
-                  </small>
-                </span>
-                {contact.isPrimary && (
-                  <span className="absolute right-[68px] top-2.5 inline-flex items-center gap-1 rounded-full bg-[#EAFBF2] px-2 py-1 text-xs font-semibold text-[#15803D]">
-                    <Star size={12} fill="currentColor" aria-hidden="true" />
-                    Utama
-                  </span>
-                )}
-                <span className="ml-auto grid size-10 shrink-0 place-items-center rounded-full bg-[#F3EEFF] text-[#6D4AFF]">
-                  <Phone size={20} aria-hidden="true" />
-                </span>
-                <ChevronRight className="shrink-0 text-[#A7A1B8]" size={20} aria-hidden="true" />
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {(data.criticalAllergies ||
-        data.medicalConditions ||
-        data.importantMedications) && (
-        <section className={`${cardClass} mt-4 p-5`}>
-          <h2 className="mb-1 mt-0 text-lg font-semibold text-[#171717]">
-            Informasi medis
-          </h2>
-          <div className="divide-y divide-[#ECE8FF]">
-            {data.criticalAllergies && (
-              <MedicalRow
-                icon={BadgeAlert}
-                title="Alergi"
-                body={data.criticalAllergies}
-                tone="danger"
-              />
-            )}
-            {data.medicalConditions && (
-              <MedicalRow
-                icon={HeartPulse}
-                title="Kondisi"
-                body={data.medicalConditions}
-                tone="primary"
-              />
-            )}
-            {data.importantMedications && (
-              <MedicalRow
-                icon={Pill}
-                title="Obat"
-                body={data.importantMedications}
-                tone="info"
-              />
-            )}
-          </div>
-        </section>
-      )}
-
-      {data.profileMode === ProfileMode.CHILD_GUARDIAN &&
-        data.reunificationNote && (
-          <InfoCard
-            icon={ShieldCheck}
-            title="Petunjuk mempertemukan keluarga"
-            body={data.reunificationNote}
-            tone="primary"
-          />
-        )}
-
-      {data.profileMode === ProfileMode.ELDERLY_DEPENDENT &&
-        (data.disorientationNotes || data.cognitiveConditionFlag) && (
-          <InfoCard
-            icon={Brain}
-            title="Catatan pendampingan"
-            body={
-              data.disorientationNotes ??
-              "Orang ini mungkin mengalami kebingungan atau disorientasi. Dampingi dengan tenang sambil menghubungi keluarga."
-            }
-            tone="primary"
-          />
-        )}
-
-      {data.emergencyNotes && (
-        <InfoCard
-          icon={FileHeart}
-          title="Catatan darurat"
-          body={data.emergencyNotes}
-          tone="warning"
-          display="note"
+        <div
+          className="mx-auto mb-5 h-1.5 w-12 rounded-full bg-[#DDD6FE]"
+          aria-hidden="true"
         />
-      )}
 
-      <footer className={`${cardClass} bg-gradient-to-br from-white/95 to-[#F3EEFF]/70`}>
-        <div className="flex items-center gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-[14px] bg-emerald-50 text-[#22C55E]">
-            <CheckCircle2 size={20} aria-hidden="true" />
-          </span>
-          <div>
-            <strong className="block text-[15px]">Diverifikasi oleh pemilik</strong>
-            <p className="mb-0 mt-1 text-sm text-[#6B7280]">
-              Informasi profil darurat RAKSA
-            </p>
-          </div>
-        </div>
-        <div className="mt-3.5 flex items-center gap-2 border-t border-[#ECE8FF] pt-3 text-sm font-semibold text-gray-600">
-          <Clock3 size={16} className="text-[#6D4AFF]" aria-hidden="true" />
-          {data.lastConfirmedAt
-            ? `Terakhir dikonfirmasi ${formatDate(data.lastConfirmedAt)}`
-            : "Tanggal konfirmasi belum tersedia"}
-        </div>
-        <p className="mb-0 mt-3 flex items-start gap-2 text-sm leading-relaxed text-[#6B7280]">
-          <ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#6D4AFF]" aria-hidden="true" />
-          <span>{disclaimer}</span>
-        </p>
-      </footer>
-    </main>
-  );
-}
-
-function MedicalRow({
-  icon: Icon,
-  title,
-  body,
-  tone,
-}: {
-  icon: LucideIcon;
-  title: string;
-  body: string;
-  tone: keyof typeof medicalTone;
-}) {
-  const colors = medicalTone[tone];
-  const values = splitMedicalValues(body);
-
-  return (
-    <div className="flex gap-3 py-3.5 first:pt-3 last:pb-0">
-      <span
-        className={`mt-0.5 grid size-10 shrink-0 place-items-center rounded-xl ${colors.icon}`}
-      >
-        <Icon size={20} aria-hidden="true" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="mb-1.5 mt-0 text-sm font-semibold text-[#171717]">{title}</p>
-        {values.length > 1 ? (
-          <div className="flex flex-wrap gap-2">
-            {values.map((value, index) => (
-              <span
-                key={`${value}-${index}`}
-                className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-semibold ${colors.pill}`}
-              >
-                {value}
-              </span>
+        {medicalRows.length > 0 && (
+          <InfoSection title="Informasi medis">
+            {medicalRows.map((row) => (
+              <KeyValueRow key={row.label} label={row.label} value={row.value} />
             ))}
-          </div>
-        ) : (
-          <p className="mb-0 text-[15px] font-medium leading-relaxed text-[#4B5563]">
-            {body}
-          </p>
+          </InfoSection>
         )}
-      </div>
+
+        {contacts.length > 0 && (
+          <section className="mb-5">
+            <h2 className="mb-3 mt-0 text-[17px] font-bold text-[#111827]">
+              Kontak darurat
+            </h2>
+            <div className={`${sheetCard} divide-y divide-[#F1F0F7]`}>
+              {contacts.map((contact) => (
+                <a
+                  key={`${contact.telUri}-${contact.label}`}
+                  href={contact.telUri}
+                  className="flex items-center gap-3 px-4 py-3.5 text-inherit no-underline transition-colors hover:bg-[#F8F7FF]"
+                >
+                  <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-[#E5E7EB] text-[#6B7280]">
+                    <UserRound size={22} aria-hidden="true" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <strong className="block truncate text-[16px] font-bold text-[#111827]">
+                      {contact.label}
+                    </strong>
+                    <small className="mt-0.5 block text-[13px] text-[#6B7280]">
+                      {contact.label === contact.relationship
+                        ? "Kontak darurat"
+                        : contact.relationship}
+                    </small>
+                  </span>
+                  {contact.isPrimary && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#EAFBF2] px-2 py-1 text-[11px] font-semibold text-[#15803D]">
+                      <Star size={11} fill="currentColor" aria-hidden="true" />
+                      Utama
+                    </span>
+                  )}
+                  <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[#EDE9FE] text-[#6D4AFF]">
+                    <Phone size={16} aria-hidden="true" />
+                  </span>
+                  <ChevronRight
+                    size={18}
+                    className="shrink-0 text-[#C4C0D4]"
+                    aria-hidden="true"
+                  />
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {noteRows.length > 0 && (
+          <InfoSection title="Catatan">
+            {noteRows.map((row) => (
+              <KeyValueRow
+                key={row.label}
+                label={row.label === "Catatan" ? "" : row.label}
+                value={row.value}
+                stacked
+              />
+            ))}
+          </InfoSection>
+        )}
+
+        <footer className="mt-1 border-t border-[#ECEAF3] pt-6 text-center">
+          <p className="m-0 text-[13px] font-medium text-[#6B7280]">
+            Diverifikasi oleh pemilik · Informasi profil darurat RAKSA
+          </p>
+          <p className="mb-0 mt-1 text-[12px] text-[#9CA3AF]">
+            {data.lastConfirmedAt
+              ? `Terakhir dikonfirmasi ${formatDate(data.lastConfirmedAt)}`
+              : "Tanggal konfirmasi belum tersedia"}
+          </p>
+          <p className="mx-auto mb-0 mt-4 max-w-[420px] text-[12px] leading-relaxed text-[#9CA3AF]">
+            {disclaimer}
+          </p>
+          <Link
+            href="/"
+            className="mt-5 inline-block text-[12px] font-medium text-[#9CA3AF] no-underline transition-colors hover:text-[#6D4AFF]"
+          >
+            © 2026 RAKSA
+          </Link>
+        </footer>
+      </section>
     </div>
   );
 }
 
-function InfoCard({
-  icon: Icon,
+function InfoSection({
   title,
-  body,
-  tone = "primary",
-  display = "note",
+  children,
 }: {
-  icon: LucideIcon;
   title: string;
-  body: string;
-  tone?: keyof typeof medicalTone;
-  display?: "pills" | "note";
+  children: ReactNode;
 }) {
-  const colors = medicalTone[tone];
-
   return (
-    <section
-      className="mt-4 rounded-3xl border border-[#ECE8FF] bg-white p-6 shadow-[0_2px_3px_rgba(23,23,23,0.02),0_16px_36px_-28px_rgba(67,46,151,0.3)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_4px_8px_rgba(23,23,23,0.025),0_22px_42px_-28px_rgba(67,46,151,0.4)] motion-safe:animate-[medical-card-in_400ms_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:transform-none motion-reduce:transition-none"
-    >
-      <h2 className="m-0 flex items-center gap-3.5 text-xl font-semibold leading-tight text-[#171717]">
-        <span className={`grid size-[52px] shrink-0 place-items-center rounded-2xl ${colors.icon}`}>
-          <Icon size={22} aria-hidden="true" />
-        </span>
-        {title}
-      </h2>
-      {display === "pills" ? (
-        <div className="mt-4 flex flex-wrap gap-2.5">
-          {splitMedicalValues(body).map((value, index) => (
-            <span
-              key={`${value}-${index}`}
-              className={`inline-flex h-9 items-center gap-2 rounded-full border px-3.5 text-[15px] font-semibold ${colors.pill}`}
-            >
-              <span
-                className={`size-2 shrink-0 rounded-full ${colors.marker}`}
-                aria-hidden="true"
-              />
-              {value}
-            </span>
-          ))}
-        </div>
-      ) : (
-        <p className="mb-0 mt-4 whitespace-pre-wrap rounded-2xl bg-slate-50 px-4 py-3.5 text-base font-medium leading-[1.6] text-[#6B7280]">
-          {body}
-        </p>
-      )}
+    <section className="mb-5">
+      <h2 className="mb-3 mt-0 text-[17px] font-bold text-[#111827]">{title}</h2>
+      <div className={`${sheetCard} divide-y divide-[#F1F0F7]`}>{children}</div>
     </section>
   );
+}
+
+function KeyValueRow({
+  label,
+  value,
+  stacked = false,
+}: {
+  label: string;
+  value: string;
+  stacked?: boolean;
+}) {
+  if (stacked) {
+    return (
+      <div className="px-4 py-3.5">
+        {label && (
+          <p className="mb-1 mt-0 text-[13px] font-medium text-[#6B7280]">
+            {label}
+          </p>
+        )}
+        <p className="mb-0 whitespace-pre-wrap text-[15px] font-semibold leading-relaxed text-[#111827]">
+          {value}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-4 px-4 py-3.5">
+      <span className="shrink-0 text-[14px] font-medium text-[#6B7280]">{label}</span>
+      <span className="text-right text-[14px] font-semibold leading-snug text-[#111827]">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function getModeLabel(mode: PublicEmergencyPageDto["profileMode"]): string {
+  switch (mode) {
+    case ProfileMode.CHILD_GUARDIAN:
+      return "Profil perlindungan anak";
+    case ProfileMode.ELDERLY_DEPENDENT:
+      return "Profil pendampingan lansia";
+    default:
+      return "Profil Emergency";
+  }
 }
 
 function getDisclaimer(mode: PublicEmergencyPageDto["profileMode"]): string {
@@ -391,17 +380,6 @@ function formatDate(value: string): string {
   }).format(new Date(value));
 }
 
-function toWhatsAppUri(telUri: string): string {
-  return `https://wa.me/${telUri.replace(/\D/g, "")}`;
-}
-
 function formatLanguage(language: string): string {
   return language.replace(/^Bahasa\s+/i, "");
-}
-
-function splitMedicalValues(value: string): string[] {
-  return value
-    .split(/[,;\n]+/)
-    .map((item) => item.trim())
-    .filter(Boolean);
 }
