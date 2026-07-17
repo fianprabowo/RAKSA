@@ -26,8 +26,8 @@ export function ClaimActivationForm() {
           required
         />
         <p className="auth-field__hint">
-          Temukan Kode Aktivasi di dalam paket atau buku manual gelang Anda. Kode ini bersifat
-          pribadi dan tidak tercetak di gelang.
+          Temukan Kode Aktivasi di dalam paket atau buku manual tag Anda. Kode ini bersifat
+          pribadi dan tidak tercetak di tag.
         </p>
       </div>
 
@@ -38,7 +38,7 @@ export function ClaimActivationForm() {
       )}
 
       <button type="submit" className="auth-btn auth-btn--primary auth-btn--full" disabled={pending}>
-        {pending ? "Memvalidasi..." : "Klaim Gelang"}
+        {pending ? "Memvalidasi..." : "Klaim Tag"}
       </button>
     </form>
   );

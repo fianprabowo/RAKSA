@@ -41,10 +41,6 @@ export function VerifyActivationCodeForm({ onVerified }: VerifyActivationCodeFor
           spellCheck={false}
           required
         />
-        <p className="auth-field__hint">
-          Kode aktivasi diperlukan untuk mendaftar akun baru. Temukan kode di dalam paket atau
-          buku manual gelang Anda.
-        </p>
       </div>
 
       {state.error && (

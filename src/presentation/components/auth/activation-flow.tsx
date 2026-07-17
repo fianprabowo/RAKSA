@@ -114,9 +114,9 @@ export function ActivationFlow({ redirectTo }: ActivationFlowProps) {
           </p>
 
           <p className="auth-form__footer">
-            Ingin menambah gelang ke akun yang sudah ada?{" "}
+            Ingin menambah tag ke akun yang sudah ada?{" "}
             <Link href="/claim" className="auth-link">
-              Klaim gelang baru
+              Klaim tag baru
             </Link>
           </p>
         </>

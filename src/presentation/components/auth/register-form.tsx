@@ -69,7 +69,7 @@ export function RegisterForm({ activationCode }: RegisterFormProps) {
       )}
 
       <button type="submit" className="auth-btn auth-btn--primary auth-btn--full" disabled={pending}>
-        {pending ? "Memproses..." : "Buat Akun & Klaim Gelang"}
+        {pending ? "Memproses..." : "Buat Akun & Klaim Tag"}
       </button>
     </form>
   );
