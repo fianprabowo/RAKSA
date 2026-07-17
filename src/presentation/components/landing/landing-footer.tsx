@@ -11,6 +11,7 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
       { label: "Stories", href: "#cerita" },
       { label: "Scenarios", href: "#skenario" },
       { label: "How it works", href: "#cara-kerja" },
+      { label: "Products", href: "#produk" },
       { label: "Features", href: "#keunggulan" },
     ],
   },

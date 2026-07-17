@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { label: "Stories", href: "#cerita" },
   { label: "Scenarios", href: "#skenario" },
   { label: "How it works", href: "#cara-kerja" },
+  { label: "Products", href: "#produk" },
   { label: "FAQ", href: "#faq" },
 ];
 
