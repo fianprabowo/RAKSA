@@ -3,6 +3,9 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
 const PROTECTED_PREFIXES = ["/dashboard", "/family", "/tags", "/claim", "/setup", "/profile", "/contacts", "/wristbands", "/notifications", "/admin"];
 
+// Auth entry pages an already-authenticated user should never see again.
+const AUTH_PAGES = ["/login", "/register"];
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -47,6 +50,25 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Already logged in? Keep them out of the login/register pages.
+  const isAuthPage = AUTH_PAGES.some(
+    (page) => pathname === page || pathname.startsWith(`${page}/`),
+  );
+
+  if (isAuthPage && data.user) {
+    const requested = request.nextUrl.searchParams.get("redirect");
+    const isSafeRedirect =
+      !!requested &&
+      requested.startsWith("/") &&
+      !AUTH_PAGES.some(
+        (page) => requested === page || requested.startsWith(`${page}/`),
+      );
+
+    return NextResponse.redirect(
+      new URL(isSafeRedirect ? requested : "/dashboard", request.url),
+    );
+  }
+
   // Admin area is superadmin-only. Authorization is env-based (not in the DB).
   if (pathname.startsWith("/admin")) {
     const superadminId = process.env.SUPERADMIN_USER_ID;
@@ -60,6 +82,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/login/:path*",
+    "/register/:path*",
     "/dashboard/:path*",
     "/family/:path*",
     "/tags/:path*",

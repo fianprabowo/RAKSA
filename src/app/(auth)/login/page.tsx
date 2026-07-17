@@ -14,15 +14,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   const user = await authService.getCurrentUser();
 
-  if (user && params.redirect?.startsWith("/") && !params.redirect.startsWith("/login")) {
-    redirect(params.redirect);
+  // Already logged in? The login page is off-limits — send them onward.
+  // (Primary guard is in middleware; this is a defensive server-side backup.)
+  if (user) {
+    const requested = params.redirect;
+    const safeTarget =
+      requested?.startsWith("/") &&
+      !requested.startsWith("/login") &&
+      !requested.startsWith("/register");
+    redirect(safeTarget ? requested! : "/dashboard");
   }
 
   return (
-    <ActivationPageView
-      isAuthenticated={!!user}
-      userEmail={user?.email}
-      redirectTo={params.redirect}
-    />
+    <ActivationPageView isAuthenticated={false} redirectTo={params.redirect} />
   );
 }
