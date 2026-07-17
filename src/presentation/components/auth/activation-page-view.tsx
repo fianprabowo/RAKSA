@@ -1,5 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
+import { ChevronLeft, ShieldCheck } from "lucide-react";
 import { ActivationFlow } from "./activation-flow";
 import { ClaimActivationForm } from "./claim-activation-form";
 import { AuthMedia } from "./auth-media";
@@ -36,6 +39,17 @@ function ActivationSteps({ currentStep }: ActivationStepsProps) {
   );
 }
 
+function AuthBrand() {
+  return (
+    <Link href="/" className="auth-brand">
+      <span className="auth-brand__badge">
+        <ShieldCheck size={18} strokeWidth={2.4} />
+      </span>
+      <span>RAKSA</span>
+    </Link>
+  );
+}
+
 interface ActivationPageViewProps {
   isAuthenticated: boolean;
   userEmail?: string;
@@ -50,20 +64,53 @@ export function ActivationPageView({
   variant = "full",
 }: ActivationPageViewProps) {
   const showClaim = isAuthenticated;
+  // The two-step mobile flow (welcome → form) only applies to the login case.
+  const twoStep = !showClaim && variant === "full";
+  const [mobileStep, setMobileStep] = useState<"intro" | "form">("intro");
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+
+  function openForm(mode: "login" | "register") {
+    setAuthMode(mode);
+    setMobileStep("form");
+  }
+
+  // Title/description follow the chosen mode once the user is on the mobile
+  // form screen; the welcome (intro) and desktop layouts keep the generic copy.
+  const onMobileForm = twoStep && mobileStep === "form";
+  const title = onMobileForm
+    ? authMode === "login"
+      ? "Login"
+      : "Daftar"
+    : variant === "claim-only"
+      ? "Klaim Tag"
+      : "Aktivasi Tag";
+  const description = showClaim
+    ? "Masukkan Kode Aktivasi dari paket tag baru untuk menghubungkannya ke akun Anda."
+    : onMobileForm
+      ? authMode === "login"
+        ? "Masuk ke akun Anda untuk mengelola tag darurat."
+        : "Buat akun baru dengan Kode Aktivasi dari paket tag Anda."
+      : "Masuk ke akun yang sudah ada, atau daftar dengan Kode Aktivasi dari paket tag.";
 
   return (
-    <div className="auth-shell">
+    <div
+      className={`auth-shell${twoStep ? " auth-shell--stepped" : ""}`}
+      data-step={twoStep ? mobileStep : undefined}
+    >
       <main className="auth-panel">
         <div className="auth-panel__inner">
           <div className="auth-brand-row">
-            <Link href="/" className="auth-brand">
-              <span className="auth-brand__badge">
-                <ShieldCheck size={18} strokeWidth={2.4} />
-              </span>
-              <span>
-                RAKSA
-              </span>
-            </Link>
+            {twoStep && (
+              <button
+                type="button"
+                className="auth-back"
+                onClick={() => setMobileStep("intro")}
+                aria-label="Kembali"
+              >
+                <ChevronLeft size={18} strokeWidth={2.4} />
+              </button>
+            )}
+            <AuthBrand />
             {isAuthenticated && userEmail && (
               <span className="auth-panel__user">{userEmail}</span>
             )}
@@ -71,22 +118,41 @@ export function ActivationPageView({
 
           <div className="auth-panel__body">
             <div className="auth-intro">
-              <h1 className="auth-intro__title">
-                {variant === "claim-only" ? "Klaim Tag" : "Aktivasi Tag"}
-              </h1>
-              <p className="auth-intro__desc">
-                {showClaim
-                  ? "Masukkan Kode Aktivasi dari paket tag baru untuk menghubungkannya ke akun Anda."
-                  : "Masuk ke akun yang sudah ada, atau daftar dengan Kode Aktivasi dari paket tag."}
-              </p>
+              <h1 className="auth-intro__title">{title}</h1>
+              <p className="auth-intro__desc">{description}</p>
             </div>
+
+            {twoStep && (
+              <div className="auth-intro-cta">
+                <button
+                  type="button"
+                  className="auth-btn auth-btn--primary auth-btn--full"
+                  onClick={() => openForm("login")}
+                >
+                  Masuk ke akun
+                </button>
+                <button
+                  type="button"
+                  className="auth-btn auth-btn--outline auth-btn--full"
+                  onClick={() => openForm("register")}
+                >
+                  Daftar dengan Kode Aktivasi
+                </button>
+              </div>
+            )}
+
+            {twoStep && (
+              <div className="auth-form-region">
+                <ActivationFlow
+                  key={authMode}
+                  initialMode={authMode}
+                  redirectTo={redirectTo}
+                />
+              </div>
+            )}
 
             {showClaim && variant === "full" && (
               <ActivationSteps currentStep={2} />
-            )}  
-
-            {!showClaim && variant === "full" && (
-              <ActivationFlow redirectTo={redirectTo} />
             )}
 
             {showClaim && (

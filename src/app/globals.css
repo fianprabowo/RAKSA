@@ -473,17 +473,50 @@ a {
   box-shadow: 0 8px 20px -8px rgb(124 58 237 / 0.8);
 }
 
-.auth-brand__accent {
-  color: #7c3aed;
-}
-
 .auth-panel__user {
+  margin-left: auto;
   font-size: 0.75rem;
   color: #64748b;
   max-width: 45%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Back button + welcome CTA for the mobile two-step flow */
+.auth-back {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-right: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #0f172a;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.auth-back:hover {
+  background: #f8fafc;
+}
+
+.auth-intro-cta {
+  display: none;
+  gap: 0.75rem;
+}
+
+.auth-intro-cta__hint {
+  margin: 0.25rem 0 0;
+  text-align: center;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #94a3b8;
+}
+.auth-intro-cta__hint strong {
+  color: #64748b;
+  font-weight: 600;
 }
 
 .auth-panel__body {
@@ -975,6 +1008,17 @@ a {
   transform: translateY(0);
 }
 
+.auth-btn--outline {
+  background: #fff;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+}
+
+.auth-btn--outline:hover:not(:disabled) {
+  background: #f5f3ff;
+  border-color: #c4b5fd;
+}
+
 .auth-btn--full {
   width: 100%;
 }
@@ -1074,6 +1118,50 @@ a {
   }
 }
 
+@keyframes auth-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Mobile two-step login flow: welcome screen → form screen ── */
+@media (max-width: 1023px) {
+  .auth-shell--stepped .auth-intro-cta {
+    display: grid;
+    margin-top: 4rem;
+    animation: auth-fade-up 0.35s ease both;
+  }
+  .auth-shell--stepped .auth-form-region {
+    display: none;
+  }
+
+  .auth-shell--stepped[data-step="form"] .auth-media {
+    display: none;
+  }
+  .auth-shell--stepped[data-step="form"] .auth-intro-cta {
+    display: none;
+  }
+  .auth-shell--stepped[data-step="form"] .auth-form-region {
+    display: block;
+    animation: auth-fade-up 0.35s ease both;
+  }
+  .auth-shell--stepped[data-step="form"] .auth-back {
+    display: inline-flex;
+  }
+
+  /* Mode already chosen on the welcome screen — hide the tab switcher and
+     the in-form mode-switch links (use the back button to change choice). */
+  .auth-shell--stepped .auth-form__tabs,
+  .auth-shell--stepped .auth-form__hint {
+    display: none;
+  }
+}
+
 /* Tablet: a touch more breathing room, still stacked */
 @media (min-width: 640px) {
   .auth-media {
@@ -1144,7 +1232,9 @@ a {
 @media (prefers-reduced-motion: reduce) {
   .auth-phone,
   .auth-chip,
-  .auth-phone__pulse {
+  .auth-phone__pulse,
+  .auth-intro-cta,
+  .auth-form-region {
     animation: none !important;
   }
 }

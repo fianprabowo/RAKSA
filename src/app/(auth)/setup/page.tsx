@@ -29,9 +29,7 @@ export default async function SetupPage({ searchParams }: SetupPageProps) {
               <span className="auth-brand__badge">
                 <ShieldCheck size={18} strokeWidth={2.4} />
               </span>
-              <span>
-                RAKSA<span className="auth-brand__accent">-TAG</span>
-              </span>
+              <span>RAKSA</span>
             </Link>
           </div>
 

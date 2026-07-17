@@ -8,6 +8,7 @@ import { VerifyActivationCodeForm } from "./verify-activation-code-form";
 
 interface ActivationFlowProps {
   redirectTo?: string;
+  initialMode?: "login" | "register";
 }
 
 function ActivationSteps({ currentStep }: { currentStep: 1 | 2 }) {
@@ -37,8 +38,8 @@ function ActivationSteps({ currentStep }: { currentStep: 1 | 2 }) {
   );
 }
 
-export function ActivationFlow({ redirectTo }: ActivationFlowProps) {
-  const [mode, setMode] = useState<"login" | "register">("login");
+export function ActivationFlow({ redirectTo, initialMode = "login" }: ActivationFlowProps) {
+  const [mode, setMode] = useState<"login" | "register">(initialMode);
   const [verifiedCode, setVerifiedCode] = useState<string | null>(null);
 
   function switchToRegister() {
